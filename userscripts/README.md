@@ -1,5 +1,9 @@
 # UserScript: Auto-Aceite LGPD e SIGMINE
 
+[![Instalar com TamperMonkey](https://img.shields.io/badge/TamperMonkey-Instalar%20Script-blue?style=for-the-badge&logo=tampermonkey)](https://raw.githubusercontent.com/nelisjunior/myscripts/main/userscripts/Auto-Aceite%20LGPD%20e%20SIGMINE.user.js)
+
+> **📋 Pré-requisito**: É necessário ter o [TamperMonkey](https://www.tampermonkey.net/) instalado em seu navegador. Clique no botão acima para instalação automática do script.
+
 Este UserScript automatiza o processo de aceite de termos em dois sites relacionados à mineração no Brasil:
 
 - **GEOANP**: Automatiza o clique no botão "Prosseguir" do aviso LGPD
@@ -31,8 +35,22 @@ O script detecta automaticamente em qual site está executando:
 
 ## Instalação
 
+### 🚀 Instalação Rápida (Recomendada)
+
+1. **Instale o TamperMonkey** em seu navegador:
+   - [TamperMonkey para Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
+   - [TamperMonkey para Firefox](https://addons.mozilla.org/firefox/addon/tampermonkey/)
+   - [TamperMonkey para Safari](https://apps.apple.com/app/tampermonkey/id1482490089)
+   - [TamperMonkey para Edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd)
+
+2. **Clique no botão de instalação** no topo desta página para instalar automaticamente
+
+### 🔧 Instalação Manual
+
+Para usuários de outros gerenciadores de UserScript:
+
 1. Instale uma extensão de UserScript em seu navegador:
-   - [Tampermonkey](https://www.tampermonkey.net/) (Chrome, Firefox, Safari, Edge)
+   - [Tampermonkey](https://www.tampermonkey.net/) (Chrome, Firefox, Safari, Edge) - **Recomendado**
    - [Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey/) (Firefox)
    - [Violentmonkey](https://violentmonkey.github.io/) (Chrome, Firefox, Edge)
 

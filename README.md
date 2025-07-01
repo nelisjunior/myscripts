@@ -4,6 +4,11 @@ Repositório com scripts diversos
 ## UserScripts
 
 ### Auto-Aceite LGPD e SIGMINE
+
+[![Instalar com TamperMonkey](https://img.shields.io/badge/TamperMonkey-Instalar%20Script-blue?style=for-the-badge&logo=tampermonkey)](https://raw.githubusercontent.com/nelisjunior/myscripts/main/userscripts/Auto-Aceite%20LGPD%20e%20SIGMINE.user.js)
+
+> **📋 Pré-requisito**: É necessário ter o [TamperMonkey](https://www.tampermonkey.net/) instalado em seu navegador. Clique no botão acima para instalação automática do script.
+
 UserScript unificado para automação de aceite de termos em sites de mineração:
 - **GEOANP**: Automatiza clique no botão "Prosseguir" do aviso LGPD
 - **SIGMINE (geo.anm.gov.br)**: Automatiza checkbox "Eu concordo" e botão "OK"
