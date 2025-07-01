@@ -4,7 +4,7 @@
 // @version      0.1-beta
 // @description  Aceita automaticamente avisos de LGPD e termos no SIGMINE (ANM) e geoanp (ANP).
 // @author       Nélis Júnior
-// @webpage      *://github.com/nelisjunior
+// @homepage     *://github.com/nelisjunior
 // @match        *://geo.anm.gov.br/*
 // @match        *://geomaps.anp.gov.br/geoanp/*
 // @grant        none
