@@ -15,10 +15,22 @@
     
     // Configuração de debug
     const DEBUG = true;
+    const SCRIPT_EXECUTED_KEY = 'autoAceiteLGPDSigmineExecuted';
+    
     const log = (message, ...args) => {
         if (DEBUG) {
             console.log(`[Auto-Aceite LGPD e SIGMINE] ${message}`, ...args);
         }
+    };
+    
+    // Verifica se o script já foi executado com sucesso nesta página
+    const hasBeenExecuted = () => {
+        return sessionStorage.getItem(SCRIPT_EXECUTED_KEY) === 'true';
+    };
+    
+    const markAsExecuted = () => {
+        sessionStorage.setItem(SCRIPT_EXECUTED_KEY, 'true');
+        log('Script marcado como executado com sucesso');
     };
     
     // Detecta qual site está sendo executado
@@ -69,28 +81,32 @@
             // Aguarda o botão "Prosseguir" do aviso LGPD aparecer
             // Possíveis seletores comuns para botões de aceite LGPD
             const possibleSelectors = [
-                'button[contains(text(), "Prosseguir")]',
-                'button[contains(text(), "prosseguir")]',
                 'input[type="button"][value*="Prosseguir"]',
                 'input[type="submit"][value*="Prosseguir"]',
-                'a[contains(text(), "Prosseguir")]',
+                'input[type="button"][value*="prosseguir"]',
+                'input[type="submit"][value*="prosseguir"]',
                 '.lgpd-accept, .lgpd-continue, .accept-lgpd',
                 '[data-accept="lgpd"], [data-action="accept"]',
-                'button.btn-primary, button.btn-success'
+                'button.btn-primary, button.btn-success',
+                'button, input[type="button"], input[type="submit"], a'
             ];
             
             let buttonFound = false;
             
             for (const selector of possibleSelectors) {
                 try {
-                    const button = await waitForElement(selector, 2000);
-                    if (button && (button.textContent.toLowerCase().includes('prosseguir') || 
-                                   button.value?.toLowerCase().includes('prosseguir'))) {
-                        log('Clicando no botão "Prosseguir" do LGPD');
-                        button.click();
-                        buttonFound = true;
-                        break;
+                    const elements = document.querySelectorAll(selector);
+                    for (const button of elements) {
+                        const text = (button.textContent || button.value || '').toLowerCase();
+                        if (text.includes('prosseguir')) {
+                            log('Clicando no botão "Prosseguir" do LGPD');
+                            button.click();
+                            buttonFound = true;
+                            markAsExecuted();
+                            break;
+                        }
                     }
+                    if (buttonFound) break;
                 } catch (e) {
                     // Continua tentando próximo seletor
                 }
@@ -129,39 +145,52 @@
         try {
             // Aguarda o checkbox "Eu concordo" aparecer
             const checkboxSelectors = [
-                'input[type="checkbox"][contains(text(), "Eu concordo")]',
-                'input[type="checkbox"] + label[contains(text(), "Eu concordo")]',
                 'input[type="checkbox"][id*="concordo"]',
                 'input[type="checkbox"][name*="concordo"]',
                 '.agree-checkbox, .consent-checkbox',
-                '[data-agreement="true"], [data-consent="true"]'
+                '[data-agreement="true"], [data-consent="true"]',
+                'input[type="checkbox"]'
             ];
             
             let checkboxFound = false;
             
             for (const selector of checkboxSelectors) {
                 try {
-                    let checkbox = await waitForElement(selector, 2000);
-                    
-                    // Se encontrou um label, procura o checkbox associado
-                    if (checkbox.tagName === 'LABEL') {
-                        const forId = checkbox.getAttribute('for');
-                        if (forId) {
-                            checkbox = document.getElementById(forId);
-                        } else {
-                            checkbox = checkbox.querySelector('input[type="checkbox"]');
+                    const elements = document.querySelectorAll(selector);
+                    for (let checkbox of elements) {
+                        
+                        // Se encontrou um label, procura o checkbox associado
+                        if (checkbox.tagName === 'LABEL') {
+                            const forId = checkbox.getAttribute('for');
+                            if (forId) {
+                                checkbox = document.getElementById(forId);
+                            } else {
+                                checkbox = checkbox.querySelector('input[type="checkbox"]');
+                            }
+                        }
+                        
+                        if (checkbox && checkbox.type === 'checkbox') {
+                            // Verifica se há texto relacionado próximo ao checkbox
+                            const parentText = checkbox.parentElement?.textContent?.toLowerCase() || '';
+                            const nextText = checkbox.nextElementSibling?.textContent?.toLowerCase() || '';
+                            const prevText = checkbox.previousElementSibling?.textContent?.toLowerCase() || '';
+                            const labelText = document.querySelector(`label[for="${checkbox.id}"]`)?.textContent?.toLowerCase() || '';
+                            
+                            if (parentText.includes('concordo') || nextText.includes('concordo') || 
+                                prevText.includes('concordo') || labelText.includes('concordo') ||
+                                checkbox.id.toLowerCase().includes('concordo') || 
+                                checkbox.name.toLowerCase().includes('concordo')) {
+                                log('Marcando checkbox "Eu concordo"');
+                                if (!checkbox.checked) {
+                                    checkbox.checked = true;
+                                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                                checkboxFound = true;
+                                break;
+                            }
                         }
                     }
-                    
-                    if (checkbox && checkbox.type === 'checkbox') {
-                        log('Marcando checkbox "Eu concordo"');
-                        if (!checkbox.checked) {
-                            checkbox.checked = true;
-                            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                        checkboxFound = true;
-                        break;
-                    }
+                    if (checkboxFound) break;
                 } catch (e) {
                     // Continua tentando próximo seletor
                 }
@@ -191,25 +220,30 @@
             
             // Agora procura o botão "OK"
             const buttonSelectors = [
-                'button[contains(text(), "OK")]',
                 'input[type="button"][value="OK"]',
                 'input[type="submit"][value="OK"]',
+                'input[type="button"][value*="ok"]',
+                'input[type="submit"][value*="ok"]',
                 'button.ok-button, button.confirm-button',
-                '[data-action="ok"], [data-action="confirm"]'
+                '[data-action="ok"], [data-action="confirm"]',
+                'button, input[type="button"], input[type="submit"]'
             ];
             
             let buttonFound = false;
             
             for (const selector of buttonSelectors) {
                 try {
-                    const button = await waitForElement(selector, 2000);
-                    if (button && (button.textContent.toLowerCase().includes('ok') || 
-                                   button.value?.toLowerCase().includes('ok'))) {
-                        log('Clicando no botão "OK"');
-                        button.click();
-                        buttonFound = true;
-                        break;
+                    const elements = document.querySelectorAll(selector);
+                    for (const button of elements) {
+                        const text = (button.textContent || button.value || '').toLowerCase();
+                        if (text.includes('ok') || text === 'ok') {
+                            log('Clicando no botão "OK"');
+                            button.click();
+                            buttonFound = true;
+                            break;
+                        }
                     }
+                    if (buttonFound) break;
                 } catch (e) {
                     // Continua tentando próximo seletor
                 }
@@ -232,6 +266,7 @@
             
             if (checkboxFound && buttonFound) {
                 log('Automação SIGMINE concluída com sucesso');
+                markAsExecuted();
             } else if (checkboxFound && !buttonFound) {
                 log('Checkbox marcado, mas botão OK não encontrado');
             } else if (!checkboxFound && buttonFound) {
@@ -250,17 +285,26 @@
         const site = detectSite();
         log(`Site detectado: ${site}`);
         
+        if (site === 'unknown') {
+            log('Site não reconhecido para automação');
+            return;
+        }
+        
         // Aguarda o DOM estar pronto
         const executeAutomation = () => {
+            // Verifica se já foi executado com sucesso
+            if (hasBeenExecuted()) {
+                log('Script já foi executado com sucesso nesta sessão, pulando...');
+                return;
+            }
+            
+            log('Executando automação...');
             switch (site) {
                 case 'geoanp':
                     automateGeoANP();
                     break;
                 case 'sigmine':
                     automateSIGMINE();
-                    break;
-                default:
-                    log('Site não reconhecido para automação');
                     break;
             }
         };
@@ -272,9 +316,21 @@
             executeAutomation();
         }
         
-        // Também executa depois de um tempo, caso os elementos apareçam dinamicamente
-        setTimeout(executeAutomation, 1000);
-        setTimeout(executeAutomation, 3000);
+        // Também executa depois de tempos específicos, caso os elementos apareçam dinamicamente
+        setTimeout(() => {
+            log('Tentativa automática após 1 segundo');
+            executeAutomation();
+        }, 1000);
+        
+        setTimeout(() => {
+            log('Tentativa automática após 3 segundos');
+            executeAutomation();
+        }, 3000);
+        
+        setTimeout(() => {
+            log('Tentativa automática após 5 segundos');
+            executeAutomation();
+        }, 5000);
     };
     
     // Inicia o script

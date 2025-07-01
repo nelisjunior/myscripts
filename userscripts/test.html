@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Auto-Aceite LGPD e SIGMINE UserScript</title>
+    <!-- 
+    Este arquivo é usado para testar o comportamento do UserScript
+    "Auto-Aceite LGPD e SIGMINE.user.js" em um ambiente controlado
+    -->
+</head>
+<body>
+    <h1>Página de Teste para UserScript</h1>
+    
+    <div id="test-controls">
+        <button onclick="simulateGeoANP()">Simular GEOANP</button>
+        <button onclick="simulateSIGMINE()">Simular SIGMINE</button>
+        <button onclick="clearSimulation()">Limpar</button>
+    </div>
+    
+    <div id="simulation-area"></div>
+    
+    <script>
+        function simulateGeoANP() {
+            // Simula o hostname do GEOANP
+            Object.defineProperty(window.location, 'hostname', {
+                value: 'geoanp.gov.br',
+                writable: false
+            });
+            
+            document.getElementById('simulation-area').innerHTML = `
+                <div class="lgpd-notice">
+                    <h3>Aviso LGPD</h3>
+                    <p>Este site utiliza cookies conforme a Lei Geral de Proteção de Dados.</p>
+                    <button id="lgpd-continue">Prosseguir</button>
+                </div>
+            `;
+            
+            console.log('Simulação GEOANP carregada');
+        }
+        
+        function simulateSIGMINE() {
+            // Simula o hostname do SIGMINE
+            Object.defineProperty(window.location, 'hostname', {
+                value: 'geo.anm.gov.br',
+                writable: false
+            });
+            
+            document.getElementById('simulation-area').innerHTML = `
+                <div class="sigmine-consent">
+                    <h3>Termos de Uso</h3>
+                    <label>
+                        <input type="checkbox" id="agree-checkbox"> Eu concordo com os termos
+                    </label>
+                    <br><br>
+                    <button id="ok-button">OK</button>
+                </div>
+            `;
+            
+            console.log('Simulação SIGMINE carregada');
+        }
+        
+        function clearSimulation() {
+            document.getElementById('simulation-area').innerHTML = '';
+            console.log('Simulação limpa');
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        #test-controls {
+            margin-bottom: 20px;
+        }
+        
+        #test-controls button {
+            margin-right: 10px;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            background: #f5f5f5;
+            cursor: pointer;
+        }
+        
+        #test-controls button:hover {
+            background: #e5e5e5;
+        }
+        
+        #simulation-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            min-height: 100px;
+            background: #fafafa;
+        }
+        
+        .lgpd-notice, .sigmine-consent {
+            background: white;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        
+        #lgpd-continue {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        
+        #ok-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        
+        label {
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+</body>
+</html>
