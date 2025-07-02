@@ -12,12 +12,13 @@ Repositório com scripts diversos
 UserScript unificado para automação de aceite de termos em sites de mineração:
 - **GEOANP**: Automatiza clique no botão "Prosseguir" do aviso LGPD
 - **SIGMINE (geo.anm.gov.br)**: Automatiza checkbox "Eu concordo" e botão "OK"
+- **Geoportal SGB**: Automatiza checkbox "Não mostrar esta tela de abertura novamente"
 
 📁 **Localização**: `/userscripts/Auto-Aceite LGPD e SIGMINE.user.js`  
 📖 **Documentação**: `/userscripts/README.md`
 
 #### Justificativa
-Ambos os domínios, https://geo.anm.gov.br/ e https://geomaps.anp.gov.br/, exigem, por algum motivo, que concordemos com os termos SEMPRE que atualizamos (refresh [f5]) ou acessamos ambas as páginas. Isso é deveras irritante! Ditante desse cenário, criei com auxílio de IA o script que vos apresento neste repositório.
+Os domínios https://geo.anm.gov.br/, https://geomaps.anp.gov.br/ e https://geoportal.sgb.gov.br/ exigem, por algum motivo, que concordemos com os termos SEMPRE que atualizamos (refresh [f5]) ou acessamos as páginas. Isso é deveras irritante! Diante desse cenário, criei com auxílio de IA o script que vos apresento neste repositório.
 
 #### Características:
 - ✅ Detecção automática de sites

@@ -15,6 +15,7 @@
     <div id="test-controls">
         <button onclick="simulateGeoANP()">Simular GEOANP</button>
         <button onclick="simulateSIGMINE()">Simular SIGMINE</button>
+        <button onclick="simulateGeoportal()">Simular Geoportal SGB</button>
         <button onclick="clearSimulation()">Limpar</button>
     </div>
     
@@ -24,7 +25,7 @@
         function simulateGeoANP() {
             // Simula o hostname do GEOANP
             Object.defineProperty(window.location, 'hostname', {
-                value: 'geoanp.gov.br',
+                value: 'geomaps.anp.gov.br',
                 writable: false
             });
             
@@ -32,7 +33,7 @@
                 <div class="lgpd-notice">
                     <h3>Aviso LGPD</h3>
                     <p>Este site utiliza cookies conforme a Lei Geral de Proteção de Dados.</p>
-                    <button id="lgpd-continue">Prosseguir</button>
+                    <button id="lgpd_compliance_agreed">Prosseguir</button>
                 </div>
             `;
             
@@ -49,15 +50,36 @@
             document.getElementById('simulation-area').innerHTML = `
                 <div class="sigmine-consent">
                     <h3>Termos de Uso</h3>
-                    <label>
-                        <input type="checkbox" id="agree-checkbox"> Eu concordo com os termos
-                    </label>
-                    <br><br>
-                    <button id="ok-button">OK</button>
+                    <div role="checkbox" aria-label="Eu concordo com os termos" aria-checked="false" style="cursor: pointer; border: 1px solid #ccc; padding: 5px; margin: 10px 0;">
+                        ☐ Eu concordo com os termos
+                    </div>
+                    <button title="OK" style="padding: 10px 20px;">OK</button>
                 </div>
             `;
             
             console.log('Simulação SIGMINE carregada');
+        }
+        
+        function simulateGeoportal() {
+            // Simula o hostname do Geoportal SGB
+            Object.defineProperty(window.location, 'hostname', {
+                value: 'geoportal.sgb.gov.br',
+                writable: false
+            });
+            
+            document.getElementById('simulation-area').innerHTML = `
+                <div class="geoportal-notice">
+                    <h3>Aviso de Abertura</h3>
+                    <p>Bem-vindo ao Geoportal SGB.</p>
+                    <div class="confirmcheck-container">
+                        <div role="checkbox" aria-checked="false" style="cursor: pointer; border: 1px solid #ccc; padding: 5px; margin: 10px 0;">
+                            ☐ Não mostrar esta tela de abertura novamente
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            console.log('Simulação Geoportal SGB carregada');
         }
         
         function clearSimulation() {
