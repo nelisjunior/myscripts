@@ -1,6 +1,11 @@
 # myscripts
 Repositório com scripts diversos
 
+[![Version](https://img.shields.io/badge/dynamic/json?color=blue&label=Version&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2Fnelisjunior%2Fmyscripts%2Fmain%2FVERSION)](https://github.com/nelisjunior/myscripts/releases)
+[![Auto Versioning](https://img.shields.io/badge/Versioning-Automated-green)](./VERSIONING.md)
+
+> **🔄 Versionamento Automático**: Este repositório usa versionamento automático baseado em Conventional Commits. Veja [VERSIONING.md](./VERSIONING.md) para detalhes.
+
 ## UserScripts
 
 ### Auto-Aceite LGPD e SIGMINE
