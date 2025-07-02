@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Auto-Aceite LGPD e SIGMINE
 // @namespace    http://tampermonkey.net/
-// @version      0.1-beta
-// @description  Aceita automaticamente avisos de LGPD e termos no SIGMINE (ANM) e geoanp (ANP).
+// @version      0.2-beta
+// @description  Aceita automaticamente avisos de LGPD e termos no SIGMINE (ANM), geoanp (ANP) e geoportal (SGB).
 // @author       Nélis Júnior
 // @homepage     *://github.com/nelisjunior
 // @match        *://geo.anm.gov.br/*
 // @match        *://geomaps.anp.gov.br/geoanp/*
+// @match        *://geoportal.sgb.gov.br/*
 // @grant        none
 // ==/UserScript==
 
@@ -39,8 +40,15 @@
             return;
         }
 
+        // Caso geoportal - SGB
+        const geoportalCheckbox = document.querySelector('.confirmcheck-container [role="checkbox"]');
+        if (geoportalCheckbox && geoportalCheckbox.getAttribute('aria-checked') === 'false') {
+            geoportalCheckbox.click();
+            console.log('✅ Checkbox geoportal SGB clicada');
+        }
+
         // Mensagem de espera
-        if (!checkboxDiv && !lgpdBtn) {
+        if (!checkboxDiv && !lgpdBtn && !geoportalCheckbox) {
             console.log('⌛ Aguardando elementos aparecerem...');
         }
     }, 400);

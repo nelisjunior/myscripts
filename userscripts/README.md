@@ -4,10 +4,11 @@
 
 > **📋 Pré-requisito**: É necessário ter o [TamperMonkey](https://www.tampermonkey.net/) instalado em seu navegador. Clique no botão acima para instalação automática do script.
 
-Este UserScript automatiza o processo de aceite de termos em dois sites relacionados à mineração no Brasil:
+Este UserScript automatiza o processo de aceite de termos em três sites relacionados à mineração no Brasil:
 
 - **GEOANP**: Automatiza o clique no botão "Prosseguir" do aviso LGPD
 - **SIGMINE (geo.anm.gov.br)**: Automatiza o checkbox "Eu concordo" e clique no botão "OK"
+- **Geoportal SGB**: Automatiza o checkbox "Não mostrar esta tela de abertura novamente"
 
 ## Funcionalidades
 
@@ -15,6 +16,7 @@ Este UserScript automatiza o processo de aceite de termos em dois sites relacion
 O script detecta automaticamente em qual site está executando:
 - Sites que contêm "geoanp" no hostname → Executa automação LGPD
 - Sites "geo.anm.gov.br" → Executa automação SIGMINE
+- Sites "geoportal.sgb.gov.br" → Executa automação Geoportal SGB
 
 ### 🤖 Automação GEOANP (LGPD)
 - Aguarda o aparecimento do botão "Prosseguir" do aviso LGPD
@@ -27,6 +29,12 @@ O script detecta automaticamente em qual site está executando:
 - Localiza e clica no botão "OK" 
 - Suporte a diferentes estruturas HTML (label associado, checkbox independente)
 - Fallback para busca por proximidade de texto
+
+### 🤖 Automação Geoportal SGB
+- Localiza checkbox com role="checkbox" dentro da .confirmcheck-container
+- Marca automaticamente quando aria-checked = 'false'
+- Aceita aviso "Não mostrar esta tela de abertura novamente"
+- Mantém compatibilidade com outros sites
 
 ### 🐛 Debug e Logging
 - Console logging detalhado para depuração
@@ -98,6 +106,13 @@ const DEBUG = true; // true para ativar, false para desativar
 ```
 
 ## Changelog
+
+### v0.2-beta
+- Adicionado suporte para geoportal.sgb.gov.br
+- Implementada automação para checkbox "Não mostrar esta tela de abertura novamente"
+- Seletor para checkbox com role="checkbox" dentro de .confirmcheck-container
+- Mantida compatibilidade com SIGMINE e GEOANP
+- Debug logging detalhado para o novo site
 
 ### v1.0.0
 - Implementação inicial
