@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto-Aceite LGPD e SIGMINE
 // @namespace    http://tampermonkey.net/
-// @version      beta-v0.1.1
+// @version      beta-v0.2.0
 // @description  Aceita automaticamente avisos de LGPD e termos no SIGMINE (ANM), geoanp (ANP) e geoportal (SGB).
 // @author       Nélis Júnior
 // @homepage     *://github.com/nelisjunior
