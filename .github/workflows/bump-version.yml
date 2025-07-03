@@ -24,16 +24,25 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-      - name: Get current version
-        id: current_version
+      - name: Get latest released version
+        id: released_version
         run: |
-          if [ -f VERSION ]; then
-            CURRENT_VERSION=$(cat VERSION)
-          else
-            CURRENT_VERSION="beta-v0.1.0"
+          # Tenta buscar a última release publicada
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          if [[ "$LATEST_RELEASE" == "null" || -z "$LATEST_RELEASE" ]]; then
+            # Se não houver release, busca a última tag
+            LATEST_RELEASE=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           fi
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "Current version: $CURRENT_VERSION"
+          if [[ -z "$LATEST_RELEASE" ]]; then
+            # Se não houver tag, busca a versão do arquivo VERSION
+            if [ -f VERSION ]; then
+              LATEST_RELEASE=$(cat VERSION)
+            else
+              LATEST_RELEASE="beta-v0.1.0"
+            fi
+          fi
+          echo "version=$LATEST_RELEASE" >> $GITHUB_OUTPUT
+          echo "Latest released version: $LATEST_RELEASE"
 
       - name: Determine version bump
         id: version_bump
@@ -73,10 +82,9 @@ jobs:
       - name: Calculate new version
         id: new_version
         run: |
-          CURRENT="${{ steps.current_version.outputs.version }}"
+          CURRENT="${{ steps.released_version.outputs.version }}"
           BUMP_TYPE="${{ steps.version_bump.outputs.bump_type }}"
 
-          # Extract version numbers from beta-vX.Y.Z format
           VERSION_PART=$(echo "$CURRENT" | sed 's/beta-v//')
           MAJOR=$(echo "$VERSION_PART" | cut -d. -f1)
           MINOR=$(echo "$VERSION_PART" | cut -d. -f2)
@@ -84,7 +92,6 @@ jobs:
 
           echo "Current version parts: MAJOR=$MAJOR, MINOR=$MINOR, PATCH=$PATCH"
 
-          # Bump version based on type
           case $BUMP_TYPE in
             major)
               MAJOR=$((MAJOR + 1))
@@ -101,8 +108,8 @@ jobs:
           esac
 
           NEW_VERSION="beta-v${MAJOR}.${MINOR}.${PATCH}"
-          echo "New version: $NEW_VERSION"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
 
       - name: Update VERSION file
         run: |
@@ -176,7 +183,7 @@ jobs:
             Automated release for version ${{ steps.new_version.outputs.version }}
 
             Changes in this release:
-            - Version bumped from ${{ steps.current_version.outputs.version }} to ${{ steps.new_version.outputs.version }}
+            - Version bumped from ${{ steps.released_version.outputs.version }} to ${{ steps.new_version.outputs.version }}
             - Updated all UserScript @version fields
           draft: false
           prerelease: true
