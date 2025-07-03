@@ -1,0 +1,160 @@
+# Workflow para criação de releases padronizados
+# 
+# Este workflow é responsável por publicar releases no GitHub baseado em tags criadas.
+# Funciona da seguinte forma:
+#
+# 1. RELEASES NORMAIS: Tags que começam com 'v' (ex: v1.0.0, v2.1.3)
+#    - Publicados como releases estáveis/normais
+#    - Recomendados para versões de produção
+#
+# 2. PRE-RELEASES: Tags que contêm 'beta' ou 'alpha' (ex: v1.0.0-beta.1, alpha-v0.1.0)
+#    - Publicados como pre-releases
+#    - Indicados para versões de teste e desenvolvimento
+#
+# INSTRUÇÕES DE USO:
+# - Certifique-se de estar na branch main antes de criar a tag
+# - Para release estável: git tag v1.0.0 && git push origin v1.0.0
+# - Para pre-release: git tag v1.0.0-beta.1 && git push origin v1.0.0-beta.1
+# - Para pre-release alpha: git tag alpha-v0.1.0 && git push origin alpha-v0.1.0
+#
+# MANUTENÇÃO:
+# - Modificar as condições de detecção de pre-release na seção 'determine-release-type'
+# - Ajustar o corpo do release na seção 'Create GitHub Release'
+# - Atualizar a versão da action softprops/action-gh-release conforme necessário
+
+name: Create Release
+
+# Trigger: Executa apenas quando uma nova tag é criada
+on:
+  push:
+    tags:
+      - '*'  # Qualquer tag
+
+# Permissões necessárias para criar releases
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Fazer checkout do código na tag específica
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Buscar histórico completo para geração de changelog
+
+      # 2. Determinar o tipo de release baseado no padrão da tag
+      - name: Determine release type
+        id: determine-release-type
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "Tag name: $TAG_NAME"
+          
+          # Verificar se é pre-release (contém 'beta' ou 'alpha')
+          if [[ "$TAG_NAME" == *"beta"* ]] || [[ "$TAG_NAME" == *"alpha"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "release_type=Pre-release" >> $GITHUB_OUTPUT
+            echo "📦 Detected: Pre-release (beta/alpha)"
+          # Verificar se é release normal (começa com 'v')
+          elif [[ "$TAG_NAME" == v* ]]; then
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "release_type=Release" >> $GITHUB_OUTPUT
+            echo "🚀 Detected: Normal release (v*)"
+          else
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "release_type=Pre-release" >> $GITHUB_OUTPUT
+            echo "⚠️  Warning: Tag pattern not recognized, defaulting to pre-release"
+          fi
+          
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      # 3. Gerar changelog baseado nos commits desde a última tag
+      - name: Generate changelog
+        id: generate-changelog
+        run: |
+          TAG_NAME="${{ steps.determine-release-type.outputs.tag_name }}"
+          
+          # Buscar a tag anterior
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "📝 First release - showing all commits"
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges HEAD)
+          else
+            echo "📝 Generating changelog from $PREVIOUS_TAG to $TAG_NAME"
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges $PREVIOUS_TAG..HEAD)
+          fi
+          
+          # Criar arquivo temporário para o corpo do release
+          RELEASE_FILE="release_body.txt"
+          
+          # Cabeçalho
+          echo "## ${{ steps.determine-release-type.outputs.release_type }} $TAG_NAME" > $RELEASE_FILE
+          echo "" >> $RELEASE_FILE
+          
+          # Seção de mudanças
+          if [ ! -z "$PREVIOUS_TAG" ]; then
+            echo "### Mudanças desde $PREVIOUS_TAG:" >> $RELEASE_FILE
+          else
+            echo "### Primeira release do projeto:" >> $RELEASE_FILE
+          fi
+          echo "" >> $RELEASE_FILE
+          
+          # Lista de commits
+          if [ ! -z "$COMMITS" ]; then
+            echo "$COMMITS" >> $RELEASE_FILE
+          else
+            echo "- Sem mudanças significativas detectadas" >> $RELEASE_FILE
+          fi
+          echo "" >> $RELEASE_FILE
+          
+          # Adicionar informações sobre UserScripts se existirem
+          if [ -d "userscripts" ]; then
+            USERSCRIPT_COUNT=$(find userscripts -name "*.user.js" | wc -l)
+            if [ $USERSCRIPT_COUNT -gt 0 ]; then
+              echo "### 📁 UserScripts incluídos:" >> $RELEASE_FILE
+              echo "- $USERSCRIPT_COUNT script(s) de usuário atualizado(s)" >> $RELEASE_FILE
+              echo "- Versão sincronizada: $TAG_NAME" >> $RELEASE_FILE
+              echo "" >> $RELEASE_FILE
+            fi
+          fi
+          
+          # Adicionar instruções de instalação
+          echo "### 🚀 Instalação dos UserScripts:" >> $RELEASE_FILE
+          echo "1. Instale [TamperMonkey](https://www.tampermonkey.net/) em seu navegador" >> $RELEASE_FILE
+          echo "2. Clique nos links dos arquivos .user.js nesta release" >> $RELEASE_FILE
+          echo "3. Confirme a instalação no TamperMonkey" >> $RELEASE_FILE
+          echo "" >> $RELEASE_FILE
+          echo "### 📚 Documentação:" >> $RELEASE_FILE
+          echo "- [README.md](README.md) - Visão geral do projeto" >> $RELEASE_FILE
+          echo "- [VERSIONING.md](VERSIONING.md) - Sistema de versionamento" >> $RELEASE_FILE
+          echo "- [userscripts/README.md](userscripts/README.md) - Documentação dos UserScripts" >> $RELEASE_FILE
+          
+          echo "✅ Changelog generated successfully"
+
+      # 4. Criar o release no GitHub usando softprops/action-gh-release@v2
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.determine-release-type.outputs.tag_name }}
+          name: ${{ steps.determine-release-type.outputs.release_type }} ${{ steps.determine-release-type.outputs.tag_name }}
+          body_path: release_body.txt
+          prerelease: ${{ steps.determine-release-type.outputs.is_prerelease }}
+          draft: false
+          # Anexar todos os arquivos UserScript como assets
+          files: |
+            userscripts/*.user.js
+            VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 5. Log de confirmação
+      - name: Release created successfully
+        run: |
+          echo "✅ ${{ steps.determine-release-type.outputs.release_type }} created successfully!"
+          echo "🏷️  Tag: ${{ steps.determine-release-type.outputs.tag_name }}"
+          echo "🔗 Release URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.determine-release-type.outputs.tag_name }}"
+          echo "📦 Pre-release: ${{ steps.determine-release-type.outputs.is_prerelease }}"
