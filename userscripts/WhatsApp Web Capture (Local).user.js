@@ -22,11 +22,20 @@
 
   // ---- Storage helpers (usando API do Tampermonkey) ----
   function saveState() {
-    GM_setValue(STORAGE_KEY, state);
+    try {
+      const res = GM_setValue(STORAGE_KEY, state);
+      if (res && typeof res.then === 'function') res.catch(()=>{});
+    } catch (e) { /* ignore */ }
   }
   function loadState() {
-    const s = GM_getValue(STORAGE_KEY, null);
-    if (s) state = Object.assign(state, s);
+    try {
+      const s = GM_getValue(STORAGE_KEY, null);
+      if (s && typeof s.then === 'function') {
+        s.then(v => { if (v) state = Object.assign(state, v); }).catch(()=>{});
+      } else {
+        if (s) state = Object.assign(state, s);
+      }
+    } catch (e) { /* ignore */ }
   }
 
   // ---- DOM helpers ----
@@ -60,7 +69,7 @@
   let observer = null;
   function startObserving() {
     stopObserving();
-    const convo = document.querySelector('[data-testid="conversation-panel"]');
+  const convo = document.querySelector('[data-testid="conversation-panel"]') || document.querySelector('[role="region"]');
     if (!convo) return;
     observer = new MutationObserver(muts => {
       if (!state.enabled) return;
@@ -124,6 +133,8 @@
 
     // Eventos
     ui.querySelector("#wa-close").onclick = () => ui.remove();
+  // garantir que observador pare ao fechar a UI
+  ui.querySelector("#wa-close").addEventListener('click', () => stopObserving());
     ui.querySelector("#wa-set").onclick = () => {
       const current = getCurrentChatName();
       if (current) {
@@ -145,6 +156,11 @@
       updateStatus();
     };
     ui.querySelector("#wa-export").onclick = exportCaptured;
+    ui.querySelector("#wa-clear").onclick = () => {
+      state.messages = {};
+      saveState();
+      updateStatus();
+    };
 
     // restore
     ui.querySelector("#wa-target").value = state.targetChatName || "";
@@ -153,7 +169,7 @@
     updateStatus();
   }
 
-n  function updateStatus() {
+  function updateStatus() {
     const s = document.querySelector("#wa-status");
     if (!s) return;
     const count = Object.keys(state.messages).length;
@@ -164,7 +180,23 @@ n  function updateStatus() {
   function exportCaptured() {
     const arr = Object.values(state.messages).sort((a,b)=>a.ts-b.ts);
     const dataStr = JSON.stringify({ exportedAt:new Date().toISOString(), targetChatName:state.targetChatName, count:arr.length, messages:arr }, null, 2);
-    GM_download({ url: URL.createObjectURL(new Blob([dataStr], {type:"application/json"})), name: `wa_capture_${Date.now()}.json` });
+    try {
+      const blob = new Blob([dataStr], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      GM_download({ url, name: `wa_capture_${Date.now()}.json` });
+      // revogar depois de um tempo
+      setTimeout(()=>{ try{ URL.revokeObjectURL(url);}catch(e){} }, 5000);
+    } catch (e) {
+      // fallback: abrir em nova aba para copiar
+      const w = window.open();
+      w.document.write('<pre>'+escapeHtml(dataStr)+'</pre>');
+    }
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>\"']/g, c=>({
+      '&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\'':'&#39;'
+    }[c]));
   }
 
   // ---- Init ----
